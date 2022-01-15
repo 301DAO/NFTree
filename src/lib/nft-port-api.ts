@@ -4,9 +4,7 @@ import fetch from 'isomorphic-unfetch';
 const API_KEY = process.env.NEXT_PUBLIC_NFT_PORT_KEY || '';
 const NFT_PORT_ENDPOINT = 'https://api.nftport.xyz/v0';
 
-const NftPortRequest = async (
-  relativePath: string,
-) => {
+const NftPortRequest = async (relativePath: string) => {
   const url = `${NFT_PORT_ENDPOINT}/${relativePath}`;
   const options: RequestInit = {
     method: 'GET',
@@ -29,7 +27,7 @@ const NftPortRequest = async (
  */
 export const retrieveNftsByAddress = async ({
   address,
-  continuationToken,
+  continuationToken
 }: {
   address: string;
   continuationToken?: string;
@@ -46,5 +44,10 @@ export const retrieveNftsByAddress = async ({
  */
 export const retrieveNftDetails = async (contract: string, tokenId: string) => {
   const relativePath = `nfts/${contract}/${tokenId}?chain=ethereum`;
+  return NftPortRequest(relativePath);
+};
+
+export const retrieveCollectionSaleStats = async (contract: string) => {
+  const relativePath = `transactions/stats/${contract}?chain=ethereum`;
   return NftPortRequest(relativePath);
 };

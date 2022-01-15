@@ -2,10 +2,13 @@ import type { NextPage } from 'next';
 import Head from 'next/head';
 import * as React from 'react';
 import { useInfiniteQuery } from 'react-query';
+import { delay } from '../utils/misc';
 import { MediaDisplay } from '../components';
 import { useIntersectionObserver } from '../hooks';
-import { retrieveNftsByAddress } from '../lib/nft-port-api';
+import { retrieveCollectionSaleStats, retrieveNftsByAddress } from '../lib/nft-port-api';
 import styles from '../styles/Home.module.css';
+import { getCollectionSalesData,NFT,SaleStats } from '../utils/sales-data';
+
 const TEST_ADDRESSES = [
   '0x577ebc5de943e35cdf9ecb5bbe1f7d7cb6c7c647',
   '0x066317b90509069eb52474a38c212508f8a1211c'
@@ -17,9 +20,12 @@ const Home: NextPage = () => {
     setMounted(true);
   }, []);
 
+
+
   const searchInput = React.useRef<HTMLInputElement>(null);
   const [performFetch, setPerformFetch] = React.useState(false);
   const [continuationToken, setContinuationToken] = React.useState('');
+  const [collectionData, setCollectionData] = React.useState<Record<string,SaleStats>>({});
 
   const {
     data: queryResponse,
@@ -37,6 +43,11 @@ const Home: NextPage = () => {
         address: searchInput?.current?.value as string,
         continuationToken
       });
+
+      //const collectionAddresses = nfts;
+      //const collectionsToFetch = collectionAddresses.filter(({address}:{address: string }) => !collectionData[address]);
+      getCollectionSalesData(nfts, collectionData, setCollectionData);
+      
       setContinuationToken(continuation);
       setPerformFetch(false);
       return nfts;
@@ -45,6 +56,9 @@ const Home: NextPage = () => {
       enabled: performFetch && mounted && !!searchInput?.current?.value
     }
   );
+
+  
+
 
   const loadMoreButtonRef = React.useRef(null);
   useIntersectionObserver({
@@ -101,10 +115,10 @@ const Home: NextPage = () => {
         <div className="flex flex-wrap items-center justify-center w-full md:w-11/12">
           {queryResponse?.pages.map((page: any, idx: number) => (
             <React.Fragment key={idx}>
-              {page?.map((nft: any, idx: number) =>
+              {page?.map((nft: NFT, idx: number) => 
                 nft.file_url ? (
-                  <MediaDisplay key={idx} url={nft.file_url} />
-                ) : null
+                  <MediaDisplay key={idx} url={nft.file_url} sale_stats={collectionData[nft.contract_address]} />
+                ) : null 
               )}
             </React.Fragment>
           ))}
