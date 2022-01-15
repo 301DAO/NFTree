@@ -1,0 +1,5 @@
+*.css
+*.svg
+*.scratch
+.archive
+vite.config.ts
