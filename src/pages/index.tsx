@@ -2,14 +2,56 @@ import type { NextPage } from 'next';
 import Head from 'next/head';
 import * as React from 'react';
 import { useInfiniteQuery } from 'react-query';
+import { delay } from '../utils/misc';
 import { MediaDisplay } from '../components';
 import { useIntersectionObserver } from '../hooks';
-import { retrieveNftsByAddress } from '../lib/nft-port-api';
+import { retrieveCollectionSaleStats, retrieveNftsByAddress } from '../lib/nft-port-api';
 import styles from '../styles/Home.module.css';
 const TEST_ADDRESSES = [
   '0x577ebc5de943e35cdf9ecb5bbe1f7d7cb6c7c647',
   '0x066317b90509069eb52474a38c212508f8a1211c'
 ];
+
+interface NFT {
+  cached_file_url: string;
+  contract_address: string;
+  creator_address: string;
+  description: string;
+  file_url: string;
+  metadata: any;
+  metadata_url: string;
+  name: string;
+  token_id: string;
+}
+
+export interface SaleStatsResponse {
+  response: string;
+  statistics: SaleStats;
+}
+
+
+export interface SaleStats {
+  one_day_volume: number,
+  one_day_change: number,
+  one_day_sales: number,
+  one_day_average_price: number,
+  seven_day_volume: number,
+  seven_day_change: number,
+  seven_day_sales: number,
+  seven_day_average_price: number,
+  thirty_day_volume: number,
+  thirty_day_change: number,
+  thirty_day_sales: number,
+  thirty_day_average_price: number,
+  total_volume: number,
+  total_sales: number,
+  total_supply: number,
+  total_minted: number,
+  num_owners: number,
+  average_price: number,
+  market_cap: number,
+  floor_price: number  
+}
 
 const Home: NextPage = () => {
   const [mounted, setMounted] = React.useState(false);
@@ -20,6 +62,7 @@ const Home: NextPage = () => {
   const searchInput = React.useRef<HTMLInputElement>(null);
   const [performFetch, setPerformFetch] = React.useState(false);
   const [continuationToken, setContinuationToken] = React.useState('');
+  const [collectionData, setCollectionData] = React.useState<Record<string,SaleStats>>({});
 
   const {
     data: queryResponse,
@@ -37,6 +80,9 @@ const Home: NextPage = () => {
         address: searchInput?.current?.value as string,
         continuationToken
       });
+
+      await getCollectionSalesData(nfts);
+      
       setContinuationToken(continuation);
       setPerformFetch(false);
       return nfts;
@@ -70,6 +116,39 @@ const Home: NextPage = () => {
     setPerformFetch(true);
   };
 
+  const getCollectionSalesData = async (page: any) => {
+
+    // get all unique contract addresses
+    const contractAddresses = new Set<string>(page.map((nft: NFT) => nft.contract_address));
+    const uniqueContractAddresses = Array.from(contractAddresses);
+
+    const fetchSaleData = async (contract_address: string) => {
+      
+      await delay(5000);
+      const saleDataResult = await retrieveCollectionSaleStats(
+        contract_address as string,
+      );
+
+      if(saleDataResult.response !== "OK") {
+        await delay(5000);
+        await fetchSaleData(contract_address);
+      } else {
+
+        collectionData[contract_address] = saleDataResult.statistics;
+
+        setCollectionData(collectionData);
+      } 
+    }
+
+    // loop through all unique contract addresses and get sale data
+    uniqueContractAddresses.forEach(async (contract_address: string) => {
+      await fetchSaleData(contract_address);
+    });
+
+    console.log(collectionData);
+
+  }
+
   return (
     <div className={styles.container}>
       <Head>
@@ -101,10 +180,10 @@ const Home: NextPage = () => {
         <div className="flex flex-wrap items-center justify-center w-full md:w-11/12">
           {queryResponse?.pages.map((page: any, idx: number) => (
             <React.Fragment key={idx}>
-              {page?.map((nft: any, idx: number) =>
+              {page?.map((nft: NFT, idx: number) => 
                 nft.file_url ? (
-                  <MediaDisplay key={idx} url={nft.file_url} />
-                ) : null
+                  collectionData[nft.contract_address] && <MediaDisplay key={idx} url={nft.file_url} sale_stats={collectionData[nft.contract_address]} />
+                ) : null 
               )}
             </React.Fragment>
           ))}
