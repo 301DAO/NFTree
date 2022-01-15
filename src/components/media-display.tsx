@@ -3,10 +3,12 @@ import * as React from "react";
 import { fetchHeaders } from "../lib";
 import { retrieveCollectionSaleStats } from "../lib/nft-port-api";
 import { delay } from "../utils/misc";
-import { SaleStats } from "../pages";
+import { SaleStats } from "../utils/sales-data";
 
 
 export const MediaDisplay = ({ url, sale_stats }: { url: string, sale_stats: SaleStats }) => {
+
+  const [collectionData, setCollectionData] = React.useState<SaleStats|null>(null);
 
   const { data: mediaType } = useQuery([url], () => fetchHeaders({ url }), {
     enabled: !!url,
@@ -17,6 +19,12 @@ export const MediaDisplay = ({ url, sale_stats }: { url: string, sale_stats: Sal
   });
   if (url.length === 0) return <></>;
 
+  React.useEffect(() => {
+    if(sale_stats?.floor_price >= 0) {
+      setCollectionData(sale_stats);
+    }
+  }, [sale_stats]);
+
   if (!!mediaType && mediaType === 'video/mp4') {
     return (
       <div>
@@ -26,7 +34,7 @@ export const MediaDisplay = ({ url, sale_stats }: { url: string, sale_stats: Sal
         >
           <video src={url} autoPlay width={300} height={300} loop />
         </a>
-        {sale_stats ? <p className="">Floor Price:  {sale_stats.floor_price} ETH</p> : <p className="">Loading Floor Price...</p>}
+        {sale_stats ? <p className="">Floor Price:  {collectionData?.floor_price ?? '?'} ETH</p> : <p className="">Loading Floor Price...</p>}
       </div>
     );
   }
@@ -39,7 +47,7 @@ export const MediaDisplay = ({ url, sale_stats }: { url: string, sale_stats: Sal
       >
         <img src={url} width={300} height={300} loading="lazy" />
       </a>
-      {sale_stats ? <p className="">Floor Price:  {sale_stats.floor_price} ETH</p> : <p className="">Loading Floor Price...</p>}
+      {sale_stats ? <p className="">Floor Price:  {collectionData?.floor_price ?? '?'} ETH</p> : <p className="">Loading Floor Price...</p>}
     </div>
   );
 };

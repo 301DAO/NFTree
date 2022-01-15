@@ -7,51 +7,12 @@ import { MediaDisplay } from '../components';
 import { useIntersectionObserver } from '../hooks';
 import { retrieveCollectionSaleStats, retrieveNftsByAddress } from '../lib/nft-port-api';
 import styles from '../styles/Home.module.css';
+import { getCollectionSalesData,NFT,SaleStats } from '../utils/sales-data';
+
 const TEST_ADDRESSES = [
   '0x577ebc5de943e35cdf9ecb5bbe1f7d7cb6c7c647',
   '0x066317b90509069eb52474a38c212508f8a1211c'
 ];
-
-interface NFT {
-  cached_file_url: string;
-  contract_address: string;
-  creator_address: string;
-  description: string;
-  file_url: string;
-  metadata: any;
-  metadata_url: string;
-  name: string;
-  token_id: string;
-}
-
-export interface SaleStatsResponse {
-  response: string;
-  statistics: SaleStats;
-}
-
-
-export interface SaleStats {
-  one_day_volume: number,
-  one_day_change: number,
-  one_day_sales: number,
-  one_day_average_price: number,
-  seven_day_volume: number,
-  seven_day_change: number,
-  seven_day_sales: number,
-  seven_day_average_price: number,
-  thirty_day_volume: number,
-  thirty_day_change: number,
-  thirty_day_sales: number,
-  thirty_day_average_price: number,
-  total_volume: number,
-  total_sales: number,
-  total_supply: number,
-  total_minted: number,
-  num_owners: number,
-  average_price: number,
-  market_cap: number,
-  floor_price: number  
-}
 
 const Home: NextPage = () => {
   const [mounted, setMounted] = React.useState(false);
@@ -83,13 +44,9 @@ const Home: NextPage = () => {
         continuationToken
       });
 
-      const collectionAddresses = nfts;
-      const collectionsToFetch = collectionAddresses.filter(({address}:{address: string }) => !collectionData[address]);
-      //if (collectionsToFetch.length > 0) {
-        await getCollectionSalesData(collectionsToFetch);
-      //}
-
-      console.log(collectionData);
+      //const collectionAddresses = nfts;
+      //const collectionsToFetch = collectionAddresses.filter(({address}:{address: string }) => !collectionData[address]);
+      getCollectionSalesData(nfts, collectionData, setCollectionData);
       
       setContinuationToken(continuation);
       setPerformFetch(false);
@@ -127,37 +84,6 @@ const Home: NextPage = () => {
     setPerformFetch(true);
   };
 
-  const getCollectionSalesData = async (page: any) => {
-
-    // get all unique contract addresses
-    const contractAddresses = new Set<string>(page.map((nft: NFT) => nft.contract_address));
-    const uniqueContractAddresses = Array.from(contractAddresses);
-
-    // console.log(uniqueContractAddresses);
-
-    const fetchSaleData = async (contract_address: string) => {
-      
-      // await delay(1000);
-      const saleDataResult = await retrieveCollectionSaleStats(
-        contract_address as string,
-      );
-
-      if(saleDataResult.response !== "OK") {
-        fetchSaleData(contract_address);
-      } else {
-        collectionData[contract_address] = saleDataResult.statistics;
-
-        setCollectionData(collectionData);
-      } 
-    }
-
-    // loop through all unique contract addresses and get sale data
-    for( const contractAddresses of uniqueContractAddresses) {
-      await fetchSaleData(contractAddresses);
-    }
-
-  }
-
   return (
     <div className={styles.container}>
       <Head>
@@ -191,7 +117,7 @@ const Home: NextPage = () => {
             <React.Fragment key={idx}>
               {page?.map((nft: NFT, idx: number) => 
                 nft.file_url ? (
-                  collectionData[nft.contract_address] && <MediaDisplay key={idx} url={nft.file_url} sale_stats={collectionData[nft.contract_address]} />
+                  <MediaDisplay key={idx} url={nft.file_url} sale_stats={collectionData[nft.contract_address]} />
                 ) : null 
               )}
             </React.Fragment>
