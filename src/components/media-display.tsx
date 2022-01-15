@@ -7,7 +7,7 @@ import { SaleStats } from "../pages";
 
 
 export const MediaDisplay = ({ url, sale_stats }: { url: string, sale_stats: SaleStats }) => {
-  
+
   const { data: mediaType } = useQuery([url], () => fetchHeaders({ url }), {
     enabled: !!url,
     refetchOnWindowFocus: false,

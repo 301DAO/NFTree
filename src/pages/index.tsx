@@ -59,6 +59,8 @@ const Home: NextPage = () => {
     setMounted(true);
   }, []);
 
+
+
   const searchInput = React.useRef<HTMLInputElement>(null);
   const [performFetch, setPerformFetch] = React.useState(false);
   const [continuationToken, setContinuationToken] = React.useState('');
@@ -81,7 +83,13 @@ const Home: NextPage = () => {
         continuationToken
       });
 
-      await getCollectionSalesData(nfts);
+      const collectionAddresses = nfts;
+      const collectionsToFetch = collectionAddresses.filter(({address}:{address: string }) => !collectionData[address]);
+      //if (collectionsToFetch.length > 0) {
+        await getCollectionSalesData(collectionsToFetch);
+      //}
+
+      console.log(collectionData);
       
       setContinuationToken(continuation);
       setPerformFetch(false);
@@ -91,6 +99,9 @@ const Home: NextPage = () => {
       enabled: performFetch && mounted && !!searchInput?.current?.value
     }
   );
+
+  
+
 
   const loadMoreButtonRef = React.useRef(null);
   useIntersectionObserver({
@@ -122,18 +133,18 @@ const Home: NextPage = () => {
     const contractAddresses = new Set<string>(page.map((nft: NFT) => nft.contract_address));
     const uniqueContractAddresses = Array.from(contractAddresses);
 
+    // console.log(uniqueContractAddresses);
+
     const fetchSaleData = async (contract_address: string) => {
       
-      await delay(5000);
+      // await delay(1000);
       const saleDataResult = await retrieveCollectionSaleStats(
         contract_address as string,
       );
 
       if(saleDataResult.response !== "OK") {
-        await delay(5000);
-        await fetchSaleData(contract_address);
+        fetchSaleData(contract_address);
       } else {
-
         collectionData[contract_address] = saleDataResult.statistics;
 
         setCollectionData(collectionData);
@@ -141,11 +152,9 @@ const Home: NextPage = () => {
     }
 
     // loop through all unique contract addresses and get sale data
-    uniqueContractAddresses.forEach(async (contract_address: string) => {
-      await fetchSaleData(contract_address);
-    });
-
-    console.log(collectionData);
+    for( const contractAddresses of uniqueContractAddresses) {
+      await fetchSaleData(contractAddresses);
+    }
 
   }
 
