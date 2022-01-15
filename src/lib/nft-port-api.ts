@@ -1,3 +1,5 @@
+import fetch from 'isomorphic-unfetch';
+
 // Docs: https://docs.nftport.xyz/docs
 const API_KEY = process.env.NEXT_PUBLIC_NFT_PORT_KEY || '';
 const NFT_PORT_ENDPOINT = 'https://api.nftport.xyz/v0';
