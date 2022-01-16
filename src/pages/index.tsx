@@ -45,11 +45,13 @@ const Home: NextPage = () => {
 
       let address = searchInput.current?.value;
 
-      const ensResults = await queryEnsSubgraph({name:address as string});
+      if(!address?.includes('0x') && address?.includes('.')) {
+        const ensResults = await queryEnsSubgraph({name:address as string});
 
-      if(ensResults.data.domains.length > 0)
-      {
-        address = ensResults.data.domains[0].resolvedAddress.id;
+        if(ensResults.data.domains.length > 0)
+        {
+          address = ensResults.data.domains[0].resolvedAddress.id;
+        }
       }
 
       const { continuation, nfts } = await retrieveNftsByAddress({

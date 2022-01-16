@@ -57,7 +57,7 @@ export const getCollectionSalesData = async (
   );
 
   const fetchSaleData = async (contract_address: string) => {
-    await delay(Math.floor(Math.random() * 30000) + 10000);
+    await delay(Math.floor(Math.random() * 5000) + 1000);
     const saleDataResult = await retrieveCollectionSaleStats(
       contract_address as string
     );
