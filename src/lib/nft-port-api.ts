@@ -27,15 +27,18 @@ const NftPortRequest = async (relativePath: string) => {
  */
 export const retrieveNftsByAddress = async ({
   address,
-  continuationToken
+  continuationToken,
+  limit,
 }: {
   address: string;
   continuationToken?: string;
+  limit?: number;
 }) => {
   const continuation = continuationToken
     ? `&continuation=${continuationToken}`
     : '';
-  const relativePath = `accounts/${address}?chain=ethereum&include=metadata${continuation}`;
+  const page_size = limit ?? 12;
+  const relativePath = `accounts/${address}?chain=ethereum&include=metadata&page_size=${page_size}${continuation}`;
   return NftPortRequest(relativePath);
 };
 

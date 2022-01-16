@@ -1,105 +1,149 @@
-import { useQuery } from "react-query";
-import * as React from "react";
-import { fetchHeaders } from "../lib";
-import { retrieveCollectionSaleStats, retrieveNftDetails } from "../lib/nft-port-api";
-import { delay } from "../utils/misc";
-import { SaleStats } from "../utils/sales-data";
+import * as React from 'react';
+import { useQuery } from 'react-query';
+import { useMounted } from '../hooks';
+import { fetchHeaders } from '../lib';
+import { retrieveCollectionSaleStats, retrieveNftDetails } from '../lib/nft-port-api';
+import { delay, isImage } from '../utils/misc';
+import { SaleStats } from '../utils/sales-data';
 
-
-export const MediaDisplay = ({ url, sale_stats, contract, nft_id , owner}: { url: string, sale_stats: SaleStats,contract:string, nft_id: string, owner:string }) => {
-
-  const [collectionData, setCollectionData] = React.useState<SaleStats|null>(null);
-  const [listingPrice,setListingPrice] = React.useState<string>("");
-  const [listingAsset,setListingAsset] = React.useState<string>("");
+export const MediaDisplay = ({
+  url,
+  sale_stats,
+  contract,
+  nft_id,
+  owner,
+  nft
+}: {
+  url: string;
+  sale_stats: SaleStats;
+  contract: string;
+  nft_id: string;
+  owner: string;
+  nft: any;
+}) => {
+  const [performFetch, setPerformFetch] = React.useState(false);
+  const mounted = useMounted();
+  React.useEffect(() => {
+    delay(3000).then(() => {
+      setPerformFetch(true);
+    });
+  }, []);
+  //const [collectionData, setCollectionData] = React.useState<SaleStats | null>(null);
+  const [listingPrice, setListingPrice] = React.useState<string>('');
+  const [listingAsset, setListingAsset] = React.useState<string>('');
 
   const { data: mediaType } = useQuery([url], () => fetchHeaders({ url }), {
-    enabled: !!url,
-    refetchOnWindowFocus: false,
-    refetchInterval: 1000 * 60 * 60 * 24,
-    refetchOnMount: false,
-    staleTime: 1000 * 60 * 60 * 24
+    enabled: !!url && !isImage(url)
+    // onSuccess: (data) => console.log(data)
   });
-  if (url.length === 0) return <></>;
 
-  React.useEffect(() => {
+  const { data: details, isFetched: isDetailsFetching } = useQuery(
+    [contract, nft_id],
+    async () => {
+      console.log(contract, nft_id);
 
-    const fetchNftDetails = async (contract:string,nft_id:string) => {
-      await delay(Math.floor(Math.random() * 5000) + 1000);
-      const results = await retrieveNftDetails(
-        contract as string,
-        nft_id,
-      );
-  
-      if (results.response !== 'OK') {
-        await fetchNftDetails(contract,nft_id);
-      } else {
-        //console.log(results);
-        if (results.transactions.length > 0) {
+      const { data } = await retrieveNftDetails(contract, nft_id);
+      console.log(`retrieveNftDetails: ${JSON.stringify(data, null, 2)}`);
 
-          let ownerFound = false;
-          // loop through transactiosn and find address that matches owner
-          for (let i = 0; i < results.transactions.length; i++) {
-            // console.log("owner: ",owner);
-            // console.log("lister addres: ",results.transactions[i].lister_address);
-            // console.log(results.transactions[i].lister_address == owner);
-            if (results.transactions[i].lister_address.toLowerCase() == owner.toLowerCase()) {
-              setListingPrice(results.transactions[i].price_details.price);
-              setListingAsset(results.transactions[i].price_details.asset_type);
-              ownerFound = true;
-              break;
-            }
-          }
-
-          if (!ownerFound) {
-            setListingPrice("Owner Has Not Listed Yet");
-            setListingAsset("");
-          }
-        } else {
-          console.log(results);
-          setListingPrice("No Transaction History");
-          setListingAsset("");
-        }
-      }
-    };
-
-    fetchNftDetails(contract,nft_id);
-
-    
-  }, []);
-
-  React.useEffect(() => {
-    if(sale_stats?.floor_price >= 0) {
-      setCollectionData(sale_stats);
+      return data;
+    },
+    {
+      enabled: false, // !!contract && !!nft_id,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
     }
-  }, [sale_stats]);
+  );
 
-  if (!!mediaType && mediaType === 'video/mp4') {
+  const { data: collectionData } = useQuery(
+    contract,
+    async () => {
+      const { statistics } = await retrieveCollectionSaleStats(contract);
+      console.log(`collection: ${JSON.stringify(statistics, null, 2)}`);
+      return statistics;
+    },
+    {
+      enabled: !!contract && performFetch, // && !!details,
+      retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000),
+      onSuccess: (data) => console.log(`collection: ${JSON.stringify(data, null, 2)}`)
+    }
+  );
+
+  if (url.length === 0 || url === 'https://rarible.mypinata.cloud/') return <></>;
+
+  if (isImage(url) || url.includes('metadata.ens.domains')) {
     return (
       <div>
-        <a
-          href={url}
-          className="border-0 m-4 p-2 text-left no-underline"
-        >
-          <video src={url} autoPlay width={300} height={300} loop />
-        </a>
-        {sale_stats ? <p className="">Floor Price:  {collectionData?.floor_price ?? '?'} ETH</p> : <p className="">Loading Floor Price...</p>}
-        {listingPrice ? <p className="">Listing Price:  {listingPrice ?? '?'} {listingAsset ?? 
-      '?'}</p> : <p className="">Loading Listing Price...</p>}
+        <div className="max-w-sm bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+          <a href={url} target="_blank" className="pb-2">
+            <img src={url} loading="lazy" className="rounded-t-lg" />
+          </a>
+          <a
+            href={url}
+            target="_blank"
+            className="pl-3 pt-2 text-center mb-1 font-normal text-gray-700 dark:text-gray-400 hover:text-blue-600"
+          >
+            {nft.name}
+          </a>
+          <div className="px-3 p-2 flex justify-between space-x-6">
+            <span className="bg-blue-100 text-blue-800 text-md font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
+              AVG. {collectionData?.average_price && collectionData?.average_price.toFixed(2)} Ξ
+            </span>
+            <span className="bg-blue-100 text-blue-800 text-md font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
+              FLR. {collectionData?.floor_price && collectionData?.floor_price.toFixed(2)} Ξ
+            </span>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  if (!!mediaType && ['video/mp4', 'video/quicktime', 'video/webm']?.includes(mediaType)) {
+    return (
+      <div>
+        <div className="max-w-sm bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+          <a href={url} target="_blank">
+            <video src={url} autoPlay loop className="rounded-t-lg text-center" />
+          </a>
+          <a
+            href={url}
+            target="_blank"
+            className="pl-3 p-1 text-center mb-1 font-normal text-gray-700 dark:text-gray-400 hover:text-blue-600"
+          >
+            {nft.name}
+          </a>
+          <div className="px-3 p-2 flex justify-between space-x-6">
+            <span className="bg-blue-100 text-blue-800 text-md font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
+              AVG. {collectionData?.average_price && collectionData?.average_price.toFixed(2)} Ξ
+            </span>
+            <span className="bg-blue-100 text-blue-800 text-md font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
+              FLR. {collectionData?.floor_price && collectionData?.floor_price.toFixed(2)} Ξ
+            </span>
+          </div>
+        </div>
       </div>
     );
   }
   return (
     <div>
-      <a
-        href={url}
-        target="_blank"
-        className="border-0 m-4 p-2 text-left no-underline"
-      >
-        <img src={url} width={300} height={300} loading="lazy" />
-      </a>
-      {sale_stats ? <p className="">Floor Price:  {collectionData?.floor_price ?? '?'} ETH</p> : <p className="">Loading Floor Price...</p>}
-      {listingPrice ? <p className="">Listing Price:  {listingPrice ?? '?'} {listingAsset ?? 
-      '?'}</p> : <p className="">Loading Listing Price...</p>}
+      <div className="max-w-sm bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+        <a href={url} target="_blank">
+          <img src={url} loading="lazy" className="rounded-t-lg" />
+        </a>
+        <a
+          href={url}
+          target="_blank"
+          className="pl-3 p-1 text-center mb-1 font-normal text-gray-700 dark:text-gray-400 hover:text-blue-600"
+        >
+          {nft.name}
+        </a>
+        <div className="px-3 p-2 flex justify-between space-x-6">
+          <span className="bg-blue-100 text-blue-800 text-md font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
+            AVG. {collectionData?.average_price && collectionData?.average_price.toFixed(2)} Ξ
+          </span>
+          <span className="bg-blue-100 text-blue-800 text-md font-semibold mr-2 px-2.5 py-0.5 rounded dark:bg-blue-200 dark:text-blue-800">
+            FLR. {collectionData?.floor_price && collectionData?.floor_price.toFixed(2)} Ξ
+          </span>
+        </div>
+      </div>
     </div>
   );
 };

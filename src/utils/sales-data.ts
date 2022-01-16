@@ -41,6 +41,10 @@ export interface SaleStats {
   floor_price: number;
 }
 
+export const uniqueContractAddresses = (nfts: NFT[]) => {
+  return [...new Set(nfts?.map(nft => nft.contract_address))];
+}
+
 export const getCollectionSalesData = async (
   page: any,
   collectionData: any,

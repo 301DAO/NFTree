@@ -1,3 +1,9 @@
+import { formatUnits } from '@ethersproject/units';
+
+export const formatPrice = (price: string) => {
+  return Number(formatUnits(price, 18)).toFixed(2);
+}
+
 export function base64Encode(str: string) {
   return Buffer.from(str, 'utf-8').toString('base64');
 }
@@ -11,3 +17,8 @@ export const currency = (number: number) => {
 };
 
 export const delay = (ms: number) => new Promise((res) => setTimeout(res, ms));
+
+const imageExtRegex = /(jpg|jpeg|png|gif|svg)$/;
+export const isImage = (url: string) => {
+  return imageExtRegex.test(url);
+};

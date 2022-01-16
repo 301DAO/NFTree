@@ -3,32 +3,25 @@ import fetch from 'isomorphic-unfetch';
 const API_KEY = process.env.NEXT_PUBLIC_THE_GRAPH_KEY;
 const GRAPH_ENS_ENDPOINT = `${process.env.NEXT_PUBLIC_THE_GRAPH_URL}/ensdomains/ens`;
 
-export const queryByName = `
-  query queryByName($name: String) {
-    domains(where: {name: $name}) {
-      resolvedAddress {
-        id
-      }
+const query = `
+  query EnsQuery($name: String, $address: String) {
+    nameQuery: domains(where: {name: $name}) {
       name
-      resolver {
-        contentHash
-      }
+      resolvedAddress { id }
     }
-  }`;
-
-export const queryByAddress = `
-  query queryByAddress($address: String) {
-    domains(where: {resolvedAddress: $address}, orderBy: createdAt, first: 5) {
-      resolvedAddress {
-        id
-      }
+    addressQuery: domains(where: {resolvedAddress: $address}, first: 1) {
       name
-      resolver {
-        contentHash
-      }
+      resolvedAddress { id }
     }
-  }`;
+  }
+`;
 
+/**
+ * It will query the subgraph when you pass it an ens name or an address
+ * if you pass an ens name it will return the address and the name
+ * if you pass an address it will return the name and the address
+ * you can pass it either one and leave the other one empty
+ */
 export const queryEnsSubgraph = async ({
   name,
   address
@@ -37,8 +30,6 @@ export const queryEnsSubgraph = async ({
   address?: string;
 }): Promise<EnsSubgraphResponse> => {
   const variables = { address, name };
-
-  const query = name ? queryByName : queryByAddress;
   const response = await fetch(GRAPH_ENS_ENDPOINT, {
     method: 'POST',
     headers: {
@@ -48,29 +39,34 @@ export const queryEnsSubgraph = async ({
   });
   const data = await response.json();
   //console.log(`queryEnsSubgraph: `, JSON.stringify(data, null, 2));
-
   return data;
 };
+
+// queryEnsSubgraph({
+//   name: 'brantly.eth',
+//   address: ''
+// }).then(console.log);
 
 export interface EnsSubgraphResponse {
   data: Data;
 }
-
-export interface Data {
-  domains: Domain[];
+interface Data {
+  nameQuery: Domain[];
+  addressQuery: Domain[];
+  //domains: Domain[];
 }
 
-export interface Domain {
+interface Domain {
   name: string;
   resolvedAddress: ResolvedAddress;
   resolver: Resolver;
 }
 
-export interface ResolvedAddress {
+interface ResolvedAddress {
   id: string;
 }
 
-export interface Resolver {
+interface Resolver {
   contentHash: string;
   texts: string[];
 }

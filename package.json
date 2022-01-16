@@ -8,6 +8,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@ethersproject/units": "^5.5.0",
     "@zoralabs/nft-hooks": "^0.8.1",
     "clsx": "^1.1.1",
     "ethers": "^5.5.3",

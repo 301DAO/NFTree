@@ -1,4 +1,3 @@
-import type { NextPage } from 'next';
 import Head from 'next/head';
 import { useRouter } from 'next/router';
 import * as React from 'react';
@@ -6,38 +5,11 @@ import { useInfiniteQuery, useQuery } from 'react-query';
 import { CopyIcon, MediaDisplay } from '../components';
 import { useIntersectionObserver, useMounted } from '../hooks';
 import { retrieveNftsByAddress } from '../lib/nft-port-api';
-import { queryEnsSubgraph } from '../lib/the-graph-api';
 import styles from '../styles/Home.module.css';
 import { NFT, SaleStats } from '../utils/sales-data';
+import { queryEnsSubgraph } from '../lib/the-graph-api';
 
-type CopiedValue = string | null;
-type CopyFn = (text: string) => Promise<boolean>; // Return success
-
-export function useCopyToClipboard(): [CopiedValue, CopyFn] {
-  const [copiedText, setCopiedText] = React.useState<CopiedValue>(null);
-
-  const copy: CopyFn = async (text) => {
-    if (!navigator?.clipboard) {
-      console.warn('Clipboard not supported');
-      return false;
-    }
-
-    // Try to save to clipboard then save it in the state if worked
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopiedText(text);
-      return true;
-    } catch (error) {
-      console.warn('Copy failed', error);
-      setCopiedText(null);
-      return false;
-    }
-  };
-
-  return [copiedText, copy];
-}
-
-const Home: NextPage = () => {
+const DynamicRoute = () => {
   const [copied, setCopied] = React.useState(false);
   function copyAddress() {
     const el = document.createElement('input');
@@ -48,12 +20,17 @@ const Home: NextPage = () => {
     document.body.removeChild(el);
     setCopied(true);
   }
-  const [, copy] = useCopyToClipboard();
-
-  const router = useRouter();
-  const mounted = useMounted();
   const loadMoreButtonRef = React.useRef(null);
   const searchInput = React.useRef<HTMLInputElement>(null);
+
+  const router = useRouter();
+  const { address: param } = router.query;
+  React.useEffect(() => {
+    searchInput!.current!.value = param as string
+  }, [param]);
+
+  const mounted = useMounted();
+
   const [performFetch, setPerformFetch] = React.useState(false);
 
   const [continuationToken, setContinuationToken] = React.useState('');
@@ -63,10 +40,9 @@ const Home: NextPage = () => {
     ['ens-query', searchInput?.current?.value],
     async () => {
       const { data } = await queryEnsSubgraph({
-        name: searchInput?.current?.value,
-        address: searchInput?.current?.value
+        name: param as string,
+        address: param as string
       });
-      console.log(data);
 
       const { addressQuery, nameQuery } = data;
       const returnedItem = [...addressQuery, ...nameQuery].find((item) => item.resolvedAddress.id);
@@ -74,7 +50,7 @@ const Home: NextPage = () => {
       return returnedItem?.resolvedAddress.id;
     },
     {
-      enabled: mounted && performFetch
+      enabled: mounted
     }
   );
 
@@ -101,10 +77,11 @@ const Home: NextPage = () => {
       return nfts;
     },
     {
-      enabled: mounted && !!address && address.startsWith('0x'),
+      enabled: mounted && !!address && (address as string).startsWith('0x'),
       notifyOnChangeProps: 'tracked',
       refetchOnWindowFocus: false,
-      refetchOnReconnect: false
+      refetchOnReconnect: false,
+
     }
   );
 
@@ -179,7 +156,7 @@ const Home: NextPage = () => {
           <button
             type="button"
             className="text-white bg-gradient-to-br from-purple-600 to-blue-500 hover:bg-gradient-to-bl focus:ring-4 focus:ring-blue-300 dark:focus:ring-blue-800 font-medium rounded-lg px-5 py-2.5 text-center mr-2 mb-2 flex space-x-2 text-md"
-            onClick={copied ? () => setCopied(false) : copy}
+            onClick={copied ? () => setCopied(false) : copyAddress}
           >
             <span>Copy Address</span>
 
@@ -226,4 +203,4 @@ const Home: NextPage = () => {
   );
 };
 
-export default Home;
+export default DynamicRoute;
