@@ -24,14 +24,13 @@ export const MediaDisplay = ({ url, sale_stats, contract, nft_id , owner}: { url
   React.useEffect(() => {
 
     const fetchNftDetails = async (contract:string,nft_id:string) => {
-      await delay(200);
+      await delay(Math.floor(Math.random() * 30000) + 10000);
       const results = await retrieveNftDetails(
         contract as string,
         nft_id,
       );
   
       if (results.response !== 'OK') {
-        await delay(2000);
         await fetchNftDetails(contract,nft_id);
       } else {
         //console.log(results);
