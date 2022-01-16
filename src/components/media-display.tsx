@@ -56,6 +56,7 @@ export const MediaDisplay = ({ url, sale_stats, contract, nft_id , owner}: { url
             setListingAsset("");
           }
         } else {
+          console.log(results);
           setListingPrice("No Transaction History");
           setListingAsset("");
         }

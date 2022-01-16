@@ -31,24 +31,23 @@ export const queryByAddress = `
 
 export const queryEnsSubgraph = async ({
   name,
-  address,
+  address
 }: {
   name?: string;
   address?: string;
 }): Promise<EnsSubgraphResponse> => {
-
   const variables = { address, name };
 
   const query = name ? queryByName : queryByAddress;
   const response = await fetch(GRAPH_ENS_ENDPOINT, {
     method: 'POST',
     headers: {
-      'Content-Type': 'application/json',
+      'Content-Type': 'application/json'
     },
-    body: JSON.stringify({ query, variables }),
+    body: JSON.stringify({ query, variables })
   });
   const data = await response.json();
-  console.log(`queryEnsSubgraph: `, JSON.stringify(data, null, 2));
+  //console.log(`queryEnsSubgraph: `, JSON.stringify(data, null, 2));
 
   return data;
 };
