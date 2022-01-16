@@ -8,11 +8,14 @@ import { useIntersectionObserver } from '../hooks';
 import { retrieveCollectionSaleStats, retrieveNftsByAddress } from '../lib/nft-port-api';
 import styles from '../styles/Home.module.css';
 import { getCollectionSalesData,NFT,SaleStats } from '../utils/sales-data';
+import { queryEnsSubgraph } from '../lib/the-graph-api';
 
 const TEST_ADDRESSES = [
   '0x577ebc5de943e35cdf9ecb5bbe1f7d7cb6c7c647',
   '0x066317b90509069eb52474a38c212508f8a1211c'
 ];
+
+//tokenangels.eth
 
 const Home: NextPage = () => {
   const [mounted, setMounted] = React.useState(false);
@@ -39,8 +42,18 @@ const Home: NextPage = () => {
   } = useInfiniteQuery(
     ['queryResponse', searchInput.current?.value],
     async () => {
+
+      let address = searchInput.current?.value;
+
+      const ensResults = await queryEnsSubgraph({name:address as string});
+
+      if(ensResults.data.domains.length > 0)
+      {
+        address = ensResults.data.domains[0].resolvedAddress.id;
+      }
+
       const { continuation, nfts } = await retrieveNftsByAddress({
-        address: searchInput?.current?.value as string,
+        address: address as string,
         continuationToken
       });
 

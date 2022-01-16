@@ -30,7 +30,7 @@ export const MediaDisplay = ({ url, sale_stats }: { url: string, sale_stats: Sal
       <div>
         <a
           href={url}
-          className="border-solid border m-4 p-2 text-left no-underline"
+          className="border-0 m-4 p-2 text-left no-underline"
         >
           <video src={url} autoPlay width={300} height={300} loop />
         </a>
@@ -43,7 +43,7 @@ export const MediaDisplay = ({ url, sale_stats }: { url: string, sale_stats: Sal
       <a
         href={url}
         target="_blank"
-        className="border-solid border m-4 p-2 text-left no-underline"
+        className="border-0 m-4 p-2 text-left no-underline"
       >
         <img src={url} width={300} height={300} loading="lazy" />
       </a>
