@@ -5,7 +5,7 @@ import { useInfiniteQuery } from 'react-query';
 import { delay } from '../utils/misc';
 import { MediaDisplay } from '../components';
 import { useIntersectionObserver } from '../hooks';
-import { retrieveCollectionSaleStats, retrieveNftsByAddress } from '../lib/nft-port-api';
+import { retrieveCollectionSaleStats, retrieveNftDetails, retrieveNftsByAddress } from '../lib/nft-port-api';
 import styles from '../styles/Home.module.css';
 import { getCollectionSalesData,NFT,SaleStats } from '../utils/sales-data';
 import { queryEnsSubgraph } from '../lib/the-graph-api';
@@ -57,10 +57,9 @@ const Home: NextPage = () => {
         continuationToken
       });
 
-      //const collectionAddresses = nfts;
-      //const collectionsToFetch = collectionAddresses.filter(({address}:{address: string }) => !collectionData[address]);
       getCollectionSalesData(nfts, collectionData, setCollectionData);
       
+
       setContinuationToken(continuation);
       setPerformFetch(false);
       return nfts;
@@ -130,7 +129,7 @@ const Home: NextPage = () => {
             <React.Fragment key={idx}>
               {page?.map((nft: NFT, idx: number) => 
                 nft.file_url ? (
-                  <MediaDisplay key={idx} url={nft.file_url} sale_stats={collectionData[nft.contract_address]} />
+                  <MediaDisplay key={idx} url={nft.file_url} sale_stats={collectionData[nft.contract_address]} contract={nft.contract_address} nft_id={nft.token_id} owner={searchInput.current?.value as string} />
                 ) : null 
               )}
             </React.Fragment>

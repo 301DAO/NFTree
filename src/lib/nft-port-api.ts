@@ -43,7 +43,8 @@ export const retrieveNftsByAddress = async ({
  * Returns details for a given NFT. These include metadata_url, metadata such as name, description, attributes, etc., image_url, cached_image_url and mint_date.
  */
 export const retrieveNftDetails = async (contract: string, tokenId: string) => {
-  const relativePath = `nfts/${contract}/${tokenId}?chain=ethereum`;
+  console.log(contract, tokenId);
+  const relativePath = `transactions/nfts/${contract}/${tokenId}?chain=ethereum&type=list`;
   return NftPortRequest(relativePath);
 };
 
