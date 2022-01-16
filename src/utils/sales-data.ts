@@ -48,7 +48,7 @@ export const getCollectionSalesData = async (
 ) => {
   // get all unique contract addresses
   const contractAddresses = new Set<string>(
-    page.map((nft: NFT) => nft.contract_address)
+    page?.map((nft: NFT) => nft.contract_address)
   );
   const uniqueContractAddresses = Array.from(contractAddresses);
 
