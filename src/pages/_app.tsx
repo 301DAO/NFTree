@@ -4,17 +4,22 @@ import { ReactQueryDevtools } from 'react-query/devtools';
 import queryClient from '../lib/clients/react-query';
 import '../styles/globals.css';
 import { Layout } from '../layouts';
-
+import Head from 'next/head';
 function App({ Component, pageProps }: AppProps) {
   return (
-    <QueryClientProvider client={queryClient}>
-      <Hydrate state={pageProps.dehydratedState}>
-       <Layout>
-          <Component {...pageProps} />
-        </Layout>
-      </Hydrate>
-      <ReactQueryDevtools />
-    </QueryClientProvider>
+    <>
+      <Head>
+        <title>NFTree</title>
+      </Head>
+      <QueryClientProvider client={queryClient}>
+        <Hydrate state={pageProps.dehydratedState}>
+          <Layout>
+            <Component {...pageProps} />
+          </Layout>
+        </Hydrate>
+        <ReactQueryDevtools />
+      </QueryClientProvider>
+    </>
   );
 }
 
