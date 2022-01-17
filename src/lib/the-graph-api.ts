@@ -1,5 +1,5 @@
 import fetch from 'isomorphic-unfetch';
-
+import { utils } from 'ethers';
 const API_KEY = process.env.NEXT_PUBLIC_THE_GRAPH_KEY;
 const GRAPH_ENS_ENDPOINT = `${process.env.NEXT_PUBLIC_THE_GRAPH_URL}/ensdomains/ens`;
 
@@ -29,7 +29,8 @@ export const queryEnsSubgraph = async ({
   name?: string;
   address?: string;
 }): Promise<EnsSubgraphResponse> => {
-  const variables = { address, name };
+  const variables = { address: address?.toLowerCase(), name };
+
   const response = await fetch(GRAPH_ENS_ENDPOINT, {
     method: 'POST',
     headers: {
@@ -38,14 +39,9 @@ export const queryEnsSubgraph = async ({
     body: JSON.stringify({ query, variables })
   });
   const data = await response.json();
-  //console.log(`queryEnsSubgraph: `, JSON.stringify(data, null, 2));
+  // console.log(`queryEnsSubgraph: `, variables, JSON.stringify(data, null, 2));
   return data;
 };
-
-// queryEnsSubgraph({
-//   name: 'brantly.eth',
-//   address: ''
-// }).then(console.log);
 
 export interface EnsSubgraphResponse {
   data: Data;
@@ -53,7 +49,6 @@ export interface EnsSubgraphResponse {
 interface Data {
   nameQuery: Domain[];
   addressQuery: Domain[];
-  //domains: Domain[];
 }
 
 interface Domain {

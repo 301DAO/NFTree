@@ -15,9 +15,6 @@ export function useIntersectionObserver({
   rootMargin?: string;
   enabled?: boolean;
 }) {
-  // console.log(
-  //   `useIntersectionObserver:\n root ${root}\n target ${target}\n onIntersect ${onIntersect}\n threshold ${threshold}\n rootMargin ${rootMargin}\n enabled ${enabled}`
-  // );
 
   React.useEffect(() => {
     if (!enabled) {
