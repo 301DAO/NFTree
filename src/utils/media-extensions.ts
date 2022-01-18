@@ -18,6 +18,7 @@ export const imageExtensions = [
   'xpm',
   'xwd',
 ];
+
 export const videoExtensions = [
   'mp4',
   'm4v',
@@ -29,5 +30,4 @@ export const videoExtensions = [
   'wmv',
   'flv',
   'avi'
-
 ];

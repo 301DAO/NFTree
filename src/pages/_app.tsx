@@ -1,11 +1,12 @@
 import type { AppProps } from 'next/app';
+import Head from 'next/head';
 import { Hydrate, QueryClientProvider } from 'react-query';
 import { ReactQueryDevtools } from 'react-query/devtools';
-import queryClient from '../lib/clients/react-query';
-import '../styles/globals.css';
 import { Layout } from '../layouts';
-import Head from 'next/head';
-function App({ Component, pageProps }: AppProps) {
+import { queryClient } from '../lib/clients';
+import '../styles/globals.css';
+
+const App = ({ Component, pageProps }: AppProps) => {
   return (
     <>
       <Head>
@@ -21,6 +22,6 @@ function App({ Component, pageProps }: AppProps) {
       </QueryClientProvider>
     </>
   );
-}
+};
 
 export default App;

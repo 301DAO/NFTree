@@ -1,6 +1,6 @@
 import fetch from 'isomorphic-unfetch';
-import { utils } from 'ethers';
-const API_KEY = process.env.NEXT_PUBLIC_THE_GRAPH_KEY;
+import type { EnsSubgraphResponse } from '../types/the-graph';
+
 const GRAPH_ENS_ENDPOINT = `${process.env.NEXT_PUBLIC_THE_GRAPH_URL}/ensdomains/ens`;
 
 const query = `
@@ -39,29 +39,5 @@ export const queryEnsSubgraph = async ({
     body: JSON.stringify({ query, variables })
   });
   const data = await response.json();
-  // console.log(`queryEnsSubgraph: `, variables, JSON.stringify(data, null, 2));
   return data;
 };
-
-export interface EnsSubgraphResponse {
-  data: Data;
-}
-interface Data {
-  nameQuery: Domain[];
-  addressQuery: Domain[];
-}
-
-interface Domain {
-  name: string;
-  resolvedAddress: ResolvedAddress;
-  resolver: Resolver;
-}
-
-interface ResolvedAddress {
-  id: string;
-}
-
-interface Resolver {
-  contentHash: string;
-  texts: string[];
-}

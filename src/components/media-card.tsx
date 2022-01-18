@@ -1,11 +1,12 @@
+import dynamic from 'next/dynamic';
 import * as React from 'react';
 import { useQuery } from 'react-query';
 import { useMounted } from '../hooks';
-import { fetchHeaders } from '../lib';
 import { retrieveCollectionSaleStats } from '../lib/nft-port-api';
-import { delay, isImage } from '../utils/misc';
-import type { NFT } from '../utils/sales-data';
-import dynamic from 'next/dynamic';
+import type { NFT } from '../types';
+import { badUrls } from '../utils/bad-nft-urls';
+import { delay } from '../utils/misc';
+
 const MediaComponent = dynamic(() => import('../components/media-tag'));
 
 const MediaCard = React.memo(({ nft }: { nft: NFT }) => {
@@ -20,18 +21,16 @@ const MediaCard = React.memo(({ nft }: { nft: NFT }) => {
     description
   } = nft;
 
+  if (file_url.length === 0 || badUrls.includes(file_url)) return <></>;
+
   const [performFetch, setPerformFetch] = React.useState(false);
   const mounted = useMounted();
   React.useEffect(() => {
     delay(3000).then(() => {
       setPerformFetch(true);
+      return () => setPerformFetch(false);
     });
   }, []);
-
-  const { data: mediaType } = useQuery([file_url], () => fetchHeaders({ url: file_url }), {
-    enabled: !!file_url && !isImage(file_url) && mounted
-    // onSuccess: (data) => console.log(data)
-  });
 
   const { data: collectionData } = useQuery(
     contract_address,
@@ -45,12 +44,10 @@ const MediaCard = React.memo(({ nft }: { nft: NFT }) => {
     }
   );
 
-  if (file_url.length === 0 || file_url === 'https://rarible.mypinata.cloud/') return <></>;
-
   return (
-    <div className="flex flex-col max-w-sm bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+    <div className="max-w-md bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
       <div className="pb-0">
-        <MediaComponent mediaType={mediaType ?? ''} mediaUrl={file_url} />
+        <MediaComponent mediaUrl={file_url} />
       </div>
       <a
         href={`https://opensea.io/assets/${contract_address}/${token_id}`}

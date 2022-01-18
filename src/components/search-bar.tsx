@@ -1,13 +1,16 @@
 import clsx from 'clsx';
 import { useRouter } from 'next/router';
 import * as React from 'react';
+import { isValidEthAddress } from '../utils/is-valid-eth-address';
+
 export const SearchBar = React.memo(
   ({ disabled, loading }: { disabled?: boolean; loading?: boolean }) => {
     const router = useRouter();
     const [searchInput, setSearchInput] = React.useState<string | null>(null);
 
-    const goToAddressRoute = async ({ pathname, query }: { pathname: string; query: any }) => {
-      if (!pathname || !query) return;
+    const goToAddressRoute = async () => {
+      const search = searchInput?.trim();
+      if (!search || (!search.endsWith('.eth') && !isValidEthAddress(search))) return;
       router.push(
         {
           pathname: '/[address]',
@@ -19,15 +22,13 @@ export const SearchBar = React.memo(
     };
     const onSearchClick = async (event: React.MouseEvent<HTMLButtonElement>) => {
       event.preventDefault();
-      const search = searchInput?.trim();
-      await goToAddressRoute({ pathname: '/[address]', query: { address: searchInput } });
+      await goToAddressRoute();
     };
 
     const onEnterKeyPress = async (event: React.KeyboardEvent<HTMLInputElement>) => {
       if (event.key !== 'Enter') return;
       event.preventDefault();
-      const search = searchInput?.trim();
-      await goToAddressRoute({ pathname: '/[address]', query: { address: search } });
+      await goToAddressRoute();
     };
 
     const onInputChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
@@ -37,10 +38,10 @@ export const SearchBar = React.memo(
     return (
       <div className="justify-center text-center bg-gradient-to-br from-red-200 via-red-300 to-yellow-200 w-[26rem] h-10 rounded-t-lg pt-1">
         <input
-          placeholder=""
+          placeholder="Ethereum address or ENS name. . ."
           onKeyPress={onEnterKeyPress}
           onChange={onInputChange}
-          className="bg-gray-50 active:outline-none outline-none focus:bg-white active:ring-0 border-b-0 rounded-t-md w-[98.2%] h-[93%] text-center placeholder-gray-600 focus:placeholder-transparent"
+          className="bg-gray-50 active:outline-none outline-none focus:bg-white active:ring-0 border-b-0 rounded-t-md w-[98.2%] h-[93%] text-center placeholder-gray-400 focus:placeholder-transparent"
         />
         <button
           disabled={disabled}

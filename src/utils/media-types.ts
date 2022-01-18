@@ -21,8 +21,6 @@ export const imageMediaTypes = [
   'image/x-xwindowdump'
 ];
 
-
-
 export const videoMediaTypes = [
   'video/mp4',
   'video/quicktime',
@@ -32,4 +30,3 @@ export const videoMediaTypes = [
   'video/x-ms-wmv',
   'video/x-flv'
 ];
-
