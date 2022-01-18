@@ -1,9 +1,3 @@
-import { formatUnits } from '@ethersproject/units';
-
-export const formatPrice = (price: string) => {
-  return Number(formatUnits(price, 18)).toFixed(2);
-}
-
 export function base64Encode(str: string) {
   return Buffer.from(str, 'utf-8').toString('base64');
 }

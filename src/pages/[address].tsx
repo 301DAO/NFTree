@@ -1,8 +1,9 @@
+import type { NextPage } from 'next';
 import dynamic from 'next/dynamic';
 import { useRouter } from 'next/router';
 import * as React from 'react';
 import { useInfiniteQuery, useQuery } from 'react-query';
-import { useIntersectionObserver, useMounted } from '../hooks';
+import { useIntersectionObserver, useIsMounted } from '../hooks';
 import { retrieveNftsByAddress } from '../lib/nft-port-api';
 import { queryEnsSubgraph } from '../lib/the-graph-api';
 import styles from '../styles/grid.module.css';
@@ -12,12 +13,12 @@ const MediaCard = dynamic(() => import('../components/media-card'));
 const LoadMoreButton = dynamic(() => import('../components/load-more-button'));
 const CopyButton = dynamic(() => import('../components/copy-button'));
 
-const Address = () => {
-  const mounted = useMounted();
+const Address: NextPage = () => {
+  const isMounted = useIsMounted();
+  
   const router = useRouter();
   const { address: param } = router.query;
 
-  const [continuationToken, setContinuationToken] = React.useState('');
   const { data: address } = useQuery(
     ['ens-query', param],
     async () => {
@@ -29,9 +30,10 @@ const Address = () => {
       const returnedItem = [...addressQuery, ...nameQuery].find((item) => item.resolvedAddress.id);
       return returnedItem?.resolvedAddress.id;
     },
-    { enabled: mounted && !!param }
+    { enabled: isMounted && !!param }
   );
 
+  const [continuationToken, setContinuationToken] = React.useState('');
   const {
     data: infiniteQueryResponse,
     isLoading,
@@ -56,7 +58,7 @@ const Address = () => {
     }
   );
 
-  const loadMoreButtonRef = React.useRef(null);
+  const loadMoreButtonRef = React.useRef<HTMLButtonElement | null>(null);
   useIntersectionObserver({
     target: loadMoreButtonRef,
     onIntersect: () => fetchNextPage({ pageParam: continuationToken }),
@@ -70,8 +72,8 @@ const Address = () => {
       <div className={styles.gallery}>
         {infiniteQueryResponse?.pages.map((page: any, idx: number) => (
           <React.Fragment key={idx}>
-            {page?.map((nft: NFT, idx: number) =>
-              nft.file_url ? <MediaCard nft={nft} key={idx} /> : <></>
+            {page?.map(
+              (nft: NFT, idx: number) => nft.file_url && <MediaCard nft={nft} key={idx} />
             )}
           </React.Fragment>
         ))}

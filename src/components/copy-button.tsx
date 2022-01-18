@@ -3,8 +3,10 @@ import { useCopyToClipboard } from '../hooks';
 import { CopyIcon } from './icon-components';
 
 const CopyButton = React.memo(({ buttonText }: { buttonText: string }) => {
-  const [, copy] = useCopyToClipboard();
   const [copyButtonText, setCopyButtonText] = React.useState(buttonText);
+
+  const [, copy] = useCopyToClipboard();
+
   const copyToClipboard = React.useCallback(async () => {
     await copy(window.location.href);
     setCopyButtonText('Copied');
@@ -12,6 +14,7 @@ const CopyButton = React.memo(({ buttonText }: { buttonText: string }) => {
       setCopyButtonText('Copy profile link');
     }, 300);
   }, []);
+
   return (
     <button
       type="button"

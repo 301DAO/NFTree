@@ -19,6 +19,7 @@ const MediaComponent = React.memo(({ mediaUrl }: { mediaUrl: string }) => {
       <img
         src={mediaUrl}
         loading="lazy"
+      
         className="w-full h-full object-fit rounded-t-lg text-center"
         alt="nft media"
       />

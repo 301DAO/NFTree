@@ -1,5 +1,6 @@
 import type { AppProps } from 'next/app';
 import Head from 'next/head';
+import { Toaster } from 'react-hot-toast';
 import { Hydrate, QueryClientProvider } from 'react-query';
 import { ReactQueryDevtools } from 'react-query/devtools';
 import { Layout } from '../layouts';
@@ -20,6 +21,7 @@ const App = ({ Component, pageProps }: AppProps) => {
         </Hydrate>
         <ReactQueryDevtools />
       </QueryClientProvider>
+      <Toaster />
     </>
   );
 };

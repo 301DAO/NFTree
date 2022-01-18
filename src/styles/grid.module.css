@@ -1,5 +1,4 @@
 .gallery {
-  /* Prevent vertical gaps */
   -webkit-column-count: 5;
   -webkit-column-gap: 0px;
   -moz-column-count: 5;

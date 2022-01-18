@@ -1,13 +1,14 @@
 import dynamic from 'next/dynamic';
 import * as React from 'react';
 import { useQuery } from 'react-query';
-import { useMounted } from '../hooks';
+import { useIsMounted } from '../hooks';
 import { retrieveCollectionSaleStats } from '../lib/nft-port-api';
 import type { NFT } from '../types';
 import { badUrls } from '../utils/bad-nft-urls';
 import { delay } from '../utils/misc';
 
 const MediaComponent = dynamic(() => import('../components/media-tag'));
+
 
 const MediaCard = React.memo(({ nft }: { nft: NFT }) => {
   const {
@@ -24,7 +25,7 @@ const MediaCard = React.memo(({ nft }: { nft: NFT }) => {
   if (file_url.length === 0 || badUrls.includes(file_url)) return <></>;
 
   const [performFetch, setPerformFetch] = React.useState(false);
-  const mounted = useMounted();
+  const isMounted = useIsMounted();
   React.useEffect(() => {
     delay(3000).then(() => {
       setPerformFetch(true);
@@ -39,13 +40,14 @@ const MediaCard = React.memo(({ nft }: { nft: NFT }) => {
       return statistics;
     },
     {
-      enabled: !!contract_address && performFetch && mounted,
+      enabled: !!contract_address && performFetch && isMounted,
       retryDelay: (attemptIndex) => Math.min(1000 * 2 ** attemptIndex, 30000)
     }
   );
 
   return (
     <div className="max-w-md bg-white rounded-lg border border-gray-200 shadow-md dark:bg-gray-800 dark:border-gray-700">
+
       <div className="pb-0">
         <MediaComponent mediaUrl={file_url} />
       </div>

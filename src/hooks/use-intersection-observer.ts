@@ -1,6 +1,6 @@
-import React, { RefObject } from 'react';
+import * as React from 'react';
 
-export function useIntersectionObserver({
+export const useIntersectionObserver = ({
   root,
   target,
   onIntersect,
@@ -9,17 +9,14 @@ export function useIntersectionObserver({
   enabled = true
 }: {
   root?: any;
-  target?: any;
-  onIntersect: () => void;
+  target?: React.RefObject<HTMLElement>;
+  onIntersect: () => Promise<any>;
   threshold?: number;
   rootMargin?: string;
   enabled?: boolean;
-}) {
-
+}) => {
   React.useEffect(() => {
-    if (!enabled) {
-      return;
-    }
+    if (!enabled) return;
 
     const observer = new IntersectionObserver(
       (entries) =>
@@ -31,16 +28,11 @@ export function useIntersectionObserver({
       }
     );
 
-    const el = target && target.current;
+    const element = target && target.current;
+    if (!element) return;
 
-    if (!el) {
-      return;
-    }
+    observer.observe(element);
 
-    observer.observe(el);
-
-    return () => {
-      observer.unobserve(el);
-    };
-  }, [target.current, enabled]);
+    return () => observer.unobserve(element);
+  }, [target?.current, enabled]);
 }
