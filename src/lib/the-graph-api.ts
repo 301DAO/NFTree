@@ -29,7 +29,7 @@ export const queryEnsSubgraph = async ({
   name?: string;
   address?: string;
 }): Promise<EnsSubgraphResponse> => {
-  const variables = { address: address?.toLowerCase(), name };
+  const variables = { address: address?.toLowerCase(), name: name?.toLowerCase() };
 
   const response = await fetch(GRAPH_ENS_ENDPOINT, {
     method: 'POST',
